@@ -16,150 +16,174 @@ const Container = styled.div.attrs({
       cursor: grabbing;
     `};
   `;
-
-
-
 // Array constructor , map 
 /// зробити обєкт item в ньому x, y і масив зі стейтами 
-
 
 export class App extends React.Component {
     state = {
         isDragging: false,
+        items: [{
+            id: 1,
+            originalX: 0,
+            originalY: 0,
 
-        originalX: 0,
-        originalY: 0,
+            translateX: 0,
+            translateY: 0,
 
-        translateX: 0,
-        translateY: 0,
+            lastTranslateX: 0,
+            lastTranslateY: 0,
 
-        lastTranslateX: 0,
-        lastTranslateY: 0,
-        items: this.items,
+            url: "favicon.ico"
+        }, {
+            id: 2,
+            originalX: 0,
+            originalY: 0,
+
+            translateX: 0,
+            translateY: 0,
+
+            lastTranslateX: 0,
+            lastTranslateY: 0,
+            url: "favicon.ico"
+        }, {
+            id: 1,
+            originalX: 0,
+            originalY: 0,
+
+            translateX: 0,
+            translateY: 0,
+
+            lastTranslateX: 0,
+            lastTranslateY: 0,
+
+            url: "favicon.ico"
+        }, {
+            id: 1,
+            originalX: 0,
+            originalY: 0,
+
+            translateX: 0,
+            translateY: 0,
+
+            lastTranslateX: 0,
+            lastTranslateY: 0,
+
+            url: "favicon.ico"
+        },]
     };
- 
 
     componentWillUnmount() {
-        window.removeEventListener('mousemove', this.handleMouseMove);
-        window.removeEventListener('mouseup', this.handleMouseUp);
+        window.removeEventListener('mousemove', (e) => this.handleMouseMove(e));
+        window.removeEventListener('mouseup', (e) => this.handleMouseUp(e));
     }
 
-        items = [{
-            id: 1,
-            x: null,
-            y: null,
-            url: "favicon.ico"
-        } ,{
-            id: 2,
-            x: null,
-            y: null,
-            url: "favicon.ico"
-        }]
-    
-    handleMouseDown = ({ clientX, clientY }) => {
-        window.addEventListener('mousemove', this.handleMouseMove);
-        window.addEventListener('mouseup', this.handleMouseUp);
+    handleMouseDown = ({ clientX, clientY }, id) => {
+        window.addEventListener('mousemove', (e) => this.handleMouseMove(e, id));
+        window.addEventListener('mouseup', (e) => this.handleMouseUp(e, id));
 
         if (this.props.onDragStart) {
             this.props.onDragStart();
         }
-        this.items.map(item => 
-            {
-                return {
-                    ...item,
-                     x: this.originalX , 
-                     y: this.originalY 
-                    }
-                })
-        this.setState({
-            originalX: clientX,
-            originalY: clientY,
-            isDragging: true
-        });
-        console.log("starting x: ", this.state.translateX, "starting y: ", this.state.translateY);
+
+        const items = this.state.items.map(item => {
+            if (item.id === id) {
+                console.log("starting x: ", this.originalX, "starting y: ", this.state.translateY);
+                return { ...item, originalX: clientX, originalY: clientY }
+            } else {
+                return item;
+            }
+        })
+        this.setState({ items, isDragging: true });
     };
 
-    handleMouseMove = ({ clientX, clientY }) => {
+    handleMouseMove = ({ clientX, clientY }, id) => {
         const { isDragging } = this.state;
         const { onDrag } = this.props;
 
         if (!isDragging) {
             return;
         }
+        this.setState(() => {
 
-        this.setState(prevState => ({
-            translateX: clientX - prevState.originalX + prevState.lastTranslateX,
-            translateY: clientY - prevState.originalY + prevState.lastTranslateY
-        }), () => {
+            const b = this.state.items.find((item) => {
+                return item.id === id;
+            })
+            return {
+                items:
+                    this.state.items.map(item => {
+                        if (item.id === id) {
+                            console.log("x:", this.translateX, "y:", this.translateY);
+                            return {
+                                ...item,
+                                translateX: clientX - b.originalX + b.lastTranslateX,
+                                translateY: clientY - b.originalY + b.lastTranslateY
+                            }
+                        } else{
+                            return item;
+                        } 
+                    })
+            };
+
+        }, () => {
             if (onDrag) {
                 onDrag({
-                    translateX: this.state.translateX,
-                    translateY: this.state.translateY
+                    translateX: this.translateX,
+                    translateY: this.translateY
                 });
             }
-        });
-        console.log("x:", this.state.translateX, "y:", this.state.translateY);
-
+        }); 
     };
 
-    handleMouseUp = () => {
-        window.removeEventListener('mousemove', this.handleMouseMove);
+    handleMouseUp = (id) => {
+        window.removeEventListener('mousemove', (e) => this.handleMouseMove(e , id));
         window.removeEventListener('mouseup', this.handleMouseUp);
 
-        this.setState(
-            {
-                originalX: 0,
-                originalY: 0,
-                lastTranslateX: this.state.translateX,
-                lastTranslateY: this.state.translateY,
 
+        const items = this.state.items.map(item => {
+            if (item.id === id) {
+                console.log("end point x: ",  this.state.item.translateX, "end point y: ", this.state.item.translateY);
+                return {
+                    ...item,
+                    lastTranslateX: this.state.item.translateX,
+                    lastTranslateY: this.state.item.translateY
+                }
+            } else {
+                return item; 
+            }
+        })
+     
+        this.setState(
+            ({
+                items,
                 isDragging: false
-            },
+            }),
             () => {
                 if (this.props.onDragEnd) {
                     this.props.onDragEnd();
                 }
             }
         );
-
-        // img: {
-        //     x,
-        //     y,
-        //     isDra;
-        //     handlehcbc : this.handleMouseDown
-        // }
-        console.log("end point x: ", this.state.lastTranslateX, "end point y: ", this.state.lastTranslateY);
+        
     };
 
     render() {
-        const { children } = this.props;
-        const { translateX, translateY, isDragging } = this.state;
+        const { isDragging, id } = this.state;
 
         return (
             <div>
-                <img alt="" src="./favicon.ico" onMouseDown={this.handleMouseDown} />
-
                 <div>
-
-                    <Container
-                        onMouseDown={this.handleMouseDown}
-                        x={translateX}
-                        y={translateY}
-                        isDragging={isDragging}
-                    >
-                        <img alt="" src="./favicon.ico" />
-                        {children}
-                    </Container>
-
-                    <Container
-                        onMouseDown={this.handleMouseDown}
-                        x={translateX}
-                        y={translateY}
-                        isDragging={isDragging}
-                    >
-                        <img alt="" src="./favicon.ico" />
-                        {children}
-                    </Container>
+                    {
+                        this.state.items.map((item) => (
+                            <Container
+                                onMouseDown={(e) => this.handleMouseDown(e, id)}
+                                x={item.originalX}
+                                y={item.originalY}
+                                isDragging={isDragging}
+                            >
+                                <img alt="" src={item.url} />
+                            </Container>
+                        ))
+                    }
                 </div>
             </div>
 
@@ -167,7 +191,4 @@ export class App extends React.Component {
     }
 }
 
-
-
-// // Put the things into the DOM!
 ReactDOM.render(<App />, document.getElementById('root'));
