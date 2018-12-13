@@ -16,8 +16,6 @@ const Container = styled.div.attrs({
       cursor: grabbing;
     `};
   `;
-// Array constructor , map 
-/// зробити обєкт item в ньому x, y і масив зі стейтами 
 
 export class App extends React.Component {
     state = {
@@ -46,7 +44,7 @@ export class App extends React.Component {
             lastTranslateY: 0,
             url: "favicon.ico"
         }, {
-            id: 1,
+            id: 3,
             originalX: 0,
             originalY: 0,
 
@@ -58,7 +56,7 @@ export class App extends React.Component {
 
             url: "favicon.ico"
         }, {
-            id: 1,
+            id: 4,
             originalX: 0,
             originalY: 0,
 
@@ -84,8 +82,11 @@ export class App extends React.Component {
         if (this.props.onDragStart) {
             this.props.onDragStart();
         }
-
+        console.log("id", id);
+        
         const items = this.state.items.map(item => {
+            console.log("item.id", item.id);
+            
             if (item.id === id) {
                 console.log("starting x: ", this.originalX, "starting y: ", this.state.translateY);
                 return { ...item, originalX: clientX, originalY: clientY }
@@ -104,10 +105,6 @@ export class App extends React.Component {
             return;
         }
         this.setState(() => {
-
-            const b = this.state.items.find((item) => {
-                return item.id === id;
-            })
             return {
                 items:
                     this.state.items.map(item => {
@@ -115,10 +112,10 @@ export class App extends React.Component {
                             console.log("x:", this.translateX, "y:", this.translateY);
                             return {
                                 ...item,
-                                translateX: clientX - b.originalX + b.lastTranslateX,
-                                translateY: clientY - b.originalY + b.lastTranslateY
+                                translateX: clientX - item.originalX + item.lastTranslateX,
+                                translateY: clientY - item.originalY + item.lastTranslateY
                             }
-                        } else{
+                        } else {
                             return item;
                         } 
                     })
@@ -167,20 +164,20 @@ export class App extends React.Component {
     };
 
     render() {
-        const { isDragging, id } = this.state;
+        const { isDragging, items } = this.state;
 
         return (
             <div>
                 <div>
                     {
-                        this.state.items.map((item) => (
+                       items.map((item) => (
                             <Container
-                                onMouseDown={(e) => this.handleMouseDown(e, id)}
-                                x={item.originalX}
-                                y={item.originalY}
+                                onMouseDown={(e) => this.handleMouseDown(e, item.id)}
+                                x={item.translateX}
+                                y={item.translateY}
                                 isDragging={isDragging}
                             >
-                                <img alt="" src={item.url} />
+                                <img alt="" src={item.url}/>
                             </Container>
                         ))
                     }
