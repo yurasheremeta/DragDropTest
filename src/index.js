@@ -9,10 +9,9 @@ const Container = styled.div.attrs({
     }),
 })`
     cursor: grab;
-
     ${({ isDragging }) =>
         isDragging && css`
-      opacity: 0.8;
+     
       cursor: grabbing;
     `};
   `;
@@ -76,28 +75,34 @@ export class App extends React.Component {
     }
 
     handleMouseDown = ({ clientX, clientY }, id) => {
-        window.addEventListener('mousemove', (e) => this.handleMouseMove(e, id));
-        window.addEventListener('mouseup', (e) => this.handleMouseUp(e, id));
 
-        if (this.props.onDragStart) {
-            this.props.onDragStart();
-        }
-        console.log("id", id);
-        
-        const items = this.state.items.map(item => {
-            console.log("item.id", item.id);
-            
-            if (item.id === id) {
-                console.log("starting x: ", this.originalX, "starting y: ", this.state.translateY);
-                return { ...item, originalX: clientX, originalY: clientY }
-            } else {
-                return item;
-            }
+        this.setState({
+            id,
+        }, () => {
+
+            window.addEventListener('mousemove', this.handleMouseMove);
+            window.addEventListener('mouseup', this.handleMouseUp);
+
+            const items = this.state.items.map(item => {
+                console.log("item.id", item.id);
+
+                if (item.id === id) {
+                    console.log("starting x: ", item.originalX, "starting y: ", item.translateY);
+                    return { ...item, originalX: clientX, originalY: clientY }
+                } else {
+                    return item;
+                }
+            })
+            this.setState({ items, isDragging: true });
+
         })
-        this.setState({ items, isDragging: true });
     };
 
-    handleMouseMove = ({ clientX, clientY }, id) => {
+    handleMouseMove = ({ clientX, clientY }) => {
+
+        const id = this.state.id;
+        console.log("id", id);
+
         const { isDragging } = this.state;
         const { onDrag } = this.props;
 
@@ -109,7 +114,7 @@ export class App extends React.Component {
                 items:
                     this.state.items.map(item => {
                         if (item.id === id) {
-                            console.log("x:", this.translateX, "y:", this.translateY);
+                            console.log("x:", item.translateX, "y:", item.translateY);
                             return {
                                 ...item,
                                 translateX: clientX - item.originalX + item.lastTranslateX,
@@ -117,7 +122,7 @@ export class App extends React.Component {
                             }
                         } else {
                             return item;
-                        } 
+                        }
                     })
             };
 
@@ -128,27 +133,29 @@ export class App extends React.Component {
                     translateY: this.translateY
                 });
             }
-        }); 
+        });
     };
 
-    handleMouseUp = (id) => {
-        window.removeEventListener('mousemove', (e) => this.handleMouseMove(e , id));
+
+    handleMouseUp = () => {
+        const id = this.state.id;
+        window.removeEventListener('mousemove', this.handleMouseMove);
         window.removeEventListener('mouseup', this.handleMouseUp);
 
 
         const items = this.state.items.map(item => {
             if (item.id === id) {
-                console.log("end point x: ",  this.state.item.translateX, "end point y: ", this.state.item.translateY);
+                console.log("end point x: ", item.translateX, "end point y: ", item.translateY);
                 return {
                     ...item,
-                    lastTranslateX: this.state.item.translateX,
-                    lastTranslateY: this.state.item.translateY
+                    lastTranslateX: item.translateX,
+                    lastTranslateY: item.translateY
                 }
             } else {
-                return item; 
+                return item;
             }
         })
-     
+
         this.setState(
             ({
                 items,
@@ -160,7 +167,7 @@ export class App extends React.Component {
                 }
             }
         );
-        
+
     };
 
     render() {
@@ -170,14 +177,14 @@ export class App extends React.Component {
             <div>
                 <div>
                     {
-                       items.map((item) => (
+                        items.map((item) => (
                             <Container
                                 onMouseDown={(e) => this.handleMouseDown(e, item.id)}
                                 x={item.translateX}
                                 y={item.translateY}
                                 isDragging={isDragging}
                             >
-                                <img alt="" src={item.url}/>
+                                <img alt="" src={item.url} />
                             </Container>
                         ))
                     }
