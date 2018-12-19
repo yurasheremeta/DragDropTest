@@ -1,7 +1,8 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { items } from '../../mocs';
-import Draggable from 'react-draggable';
+import { items } from '../../mocs';import {
+	DragSource,
+} from 'react-dnd'
 
 const Container = styled.div`
     padding: 9px;
@@ -31,8 +32,20 @@ const Image = styled.img`
     height: 50px;
     width: 50px;
 `
+    const itemSource = {
+        beginDrag: function (props, monitor){
+            return {cardId: 1}
+        }
+    }
 
-export class Toolbar extends React.Component {
+    function collection(connect , monitor){
+        return {
+            connectDragSource: connect.dragSource(),
+            isDragging: monitor.isDragging()
+        }
+    }
+
+ export class Toolbar extends React.Component {
     state = {
         isDragging: false,
         items: items,
@@ -43,7 +56,7 @@ export class Toolbar extends React.Component {
         window.removeEventListener('mouseup', (e) => this.handleMouseUp(e));
     }
 
-    handleMouseDown = ({ clientX, clientY }, id) => {
+  handleMouseDown = ({ clientX, clientY }, id) => {
 
         this.setState({
             id,
@@ -66,6 +79,7 @@ export class Toolbar extends React.Component {
 
         })
     };
+    // react-dnd
 
     handleMouseMove = ({ clientX, clientY }) => {
 
@@ -106,23 +120,13 @@ export class Toolbar extends React.Component {
     };
 
 
-    handleMouseUp = (e, result) => {
+    handleMouseUp = (e , monitor) => {
+        console.log(e);
+        
         const id = this.state.id;
         let x = e.target;
         window.removeEventListener('mousemove', this.handleMouseMove);
         window.removeEventListener('mouseup', this.handleMouseUp);
-
-
-        // if (!destination) {
-        //     return;
-        // }
-
-        // if (
-        //     destination.id === source.droppableId &&
-        //     destination.index === source.index
-        // ) {
-        //     return;
-        // }
 
         const items = this.state.items.map(item => {
             if (item.id === id) {
@@ -155,7 +159,6 @@ export class Toolbar extends React.Component {
     };
     render() {
         const { isDragging, items} = this.state;
-        const { result } = this.props;
         return (
             <div>
                 <div>
@@ -163,25 +166,23 @@ export class Toolbar extends React.Component {
                     <Table>
 
                         <Title>Items</Title>
-
+                      
                         {
                             items.map((item) => (
-                                <Draggable
-                                    defaultPosition={{ x: 0, y: 0 }}
-                                    onStart={(e) => this.handleMouseDown(e, item.id)}
-                                    onDrag={(e) => this.handleMouseMove(e)}
-                                    onStop={(e) => this.handleMouseUp(e , result)}
-                                >
-
+                                // <Draggable
+                                //     defaultPosition={{ x: item.originalX, y: item.originalY }}
+                                //     onStart={(e) => this.handleMouseDown(e, item.id)}
+                                //     onDrag={(e) => this.handleMouseMove(e)}
+                                //     onStop={(e) => this.handleMouseUp(e)}
+                                // >
                                     <Container
                                        isDragging={isDragging}
                                     >
                                         <Image  alt="" src={item.url} />
                                     </Container>
-                                </Draggable>
+                                
                             ))
                         }
-
                     </Table>
                 </div>
             </div>
@@ -189,3 +190,5 @@ export class Toolbar extends React.Component {
         );
     }
 }
+
+export default DragSource('toolbar' , itemSource, collection)(Toolbar);

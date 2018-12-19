@@ -1,5 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
+import { DropTarget } from 'react-dnd';
+
+// import HTML5Backend from 'react-dnd-html5-backend'
+
 
 const Container = styled.img`
     margin: 8px;
@@ -10,17 +14,26 @@ const Container = styled.img`
     height: 500px;
     width: 500px;
 `;
+const itemTarget = {
+    drop: function(props , monitor){
+        // TODO: add handlrMouseUp function 
+    }
+}
 
-export class WorkSpace extends React.Component {
-
+function collect (connect) { 
+    return {
+        connectDropTarget: connect.dropTarget()
+    }
+}
+export class WorkSpace extends React.Component { 
     render() {
-                return (
-           
+        const {connectDropTarget} = this.props
+                return connectDropTarget(
                 <div>
-                    <Container id="a" alt='' src="starlight.jpg" />
+                    <Container  alt='' src="starlight.jpg" />
                 </div>
-          
-
         )
     }
 }
+
+export default DropTarget('workspace' , itemTarget , collect)(WorkSpace)
